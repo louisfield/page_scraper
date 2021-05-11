@@ -30,7 +30,7 @@ public class PageScraper {
         webClient.getOptions().setCssEnabled(false);
         webClient.getOptions().setJavaScriptEnabled(false);
         try{
-            String searchUrl = "https://www.undergraduate.study.cam.ac.uk/courses/computer-science";//+ URLEncoder.encode(search_test, "UTF-8");
+            String searchUrl = "https://www.ox.ac.uk/admissions/undergraduate/courses-listing/computer-science";//+ URLEncoder.encode(search_test, "UTF-8");
             HtmlPage page = webClient.getPage(searchUrl);
             //System.out.println(page.toString());
             WebResponse response = page.getWebResponse();
@@ -53,12 +53,12 @@ public class PageScraper {
                     requirementSeen.add("ZAA");
                 }
             }
-            List<String> requirementFinal = new ArrayList<String>();
+            ArrayList<String> requirementFinal = new ArrayList<String>();
             for (String res : requirementSeen) {
                 String[] result = res.split(" ");
                 for (String word: result){
 
-                    if(word.length() < 7 && word.toUpperCase().equals(word) && !word.contains("C") && !word.contains("U") && !word.contains("L") & !word.matches("[0-9]+")) {
+                    if(word.length() == 3 && word.toUpperCase().equals(word) && !word.contains("C") && !word.contains("U") && !word.contains("L") & !word.matches("[0-9]+")) {
                         requirementFinal.add(word);
                     }
                 }
@@ -73,6 +73,7 @@ public class PageScraper {
                     }
                 }
                 finalvals.add(finalval);
+                requirementFinal.set(requirementFinal.indexOf(val),val.replace("Z","A*"));
             }
 
 
