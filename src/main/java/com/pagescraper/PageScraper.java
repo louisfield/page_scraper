@@ -25,9 +25,11 @@ public class PageScraper {
         map.put("E",16);
         return Collections.unmodifiableMap(map);
     }
-
+    public static final String[] GRADES_STRING = new String[]{
+            "A*A*A*","A*A*A","A*AA","AAA","AAB","ABB","BBB","BBC","BCC","CCC","CCD","CDD","DDD"
+    };
     public static void main(String[] args) {
-        String search_test = "Computer Science University Requirements";
+        String search_test = "aberystwyth  Computer Science University Requirements";
 
 
         WebClient webClient = new WebClient();
@@ -50,37 +52,30 @@ public class PageScraper {
                 //System.out.println(page.toString());
                 WebResponse response = page.getWebResponse();
                 Whitelist whitelist = Whitelist.none();
-                whitelist.addTags(new String[]{"p", "ul"});
+                whitelist.addTags(new String[]{"p"});
                 String safe = Jsoup.clean(response.getContentAsString(), whitelist);
                 String[] safeSplit = safe.split("<p>");
                 ArrayList<String> requirementSeen = new ArrayList<String>();
 
 
                 for (String sub : safeSplit) {
-                    sub = sub.replace("&nbsp;"," ").replace("</p>","").replaceAll("/[^a-zA-Z ]/g", "").replace("'","");
-                    if( sub.contains("AAA") || sub.contains("AAB") || sub.contains("ABB") || sub.contains("BBB") || sub.contains("BBC") || sub.contains("BCC") || sub.contains("CCC")){
 
-                        requirementSeen.add(sub);
-                    } else if(sub.contains("A*A*A*")){
-                        requirementSeen.add("ZZZ");
-                    } else if(sub.contains("A*A*A")){
-                        requirementSeen.add("ZZA");
-                    } else if(sub.contains("A*AA")){
-                        requirementSeen.add("ZAA");
-                    }
-                }
-                ArrayList<String> requirementFinal = new ArrayList<String>();
-                for (String res : requirementSeen) {
-                    String[] result = res.split(" ");
-                    for (String word: result){
+                    sub = sub.replace("&nbsp;"," ").replace("-"," ").replaceAll("[^\\P{P}*]+", " ");
 
-                        if(word.length() == 3 && word.toUpperCase().equals(word) && (word.contains("Z")  || word.contains("A") || word.contains("B") || word.contains("C") ) && !word.matches("[0-9]+")) {
-                            requirementFinal.add(word);
+                    for(String word : sub.split(" ")){
+                        if(Arrays.stream(GRADES_STRING).anyMatch(word::equals)){
+
+                            requirementSeen.add(word);
+
                         }
                     }
+
+
+
                 }
-                ArrayList<Integer> finalvals = new ArrayList<Integer>();
-                for (String val : requirementFinal) {
+                HashMap<String, Integer> fgrades = new HashMap<String,Integer>();
+
+                for (String val : requirementSeen) {
                     String[] grades = val.split("");
                     int finalval = 0;
                     for (String grade : grades){
@@ -88,13 +83,19 @@ public class PageScraper {
                             finalval += GRADES.get(grade);
                         }
                     }
-                    finalvals.add(finalval);
-                    requirementFinal.set(requirementFinal.indexOf(val),val.replace("Z","A*"));
-                }
+                    fgrades.put(val, finalval);
 
-                if(!requirementFinal.isEmpty() && !finalvals.isEmpty()) {
-                    System.out.println(requirementFinal);
-                    System.out.println(finalvals);
+                }
+                Map.Entry<String, Integer> min = null;
+                for (Map.Entry<String,Integer> ent : fgrades.entrySet()){
+                    if (min == null || min.getValue() > ent.getValue()) {
+                        min = ent;
+                    }
+                }
+                if(!requirementSeen.isEmpty() && !fgrades.isEmpty()) {
+                    System.out.println(requirementSeen);
+                    System.out.println(min.getKey());
+                    break;
                 }
 
             } catch (Exception e){
